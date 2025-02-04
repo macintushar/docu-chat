@@ -105,7 +105,6 @@ Context:
 ${context}
 
 Question: ${question}`;
-
     // Get response from Ollama
     const answer = await queryOllama(prompt);
 
@@ -169,8 +168,6 @@ Question: ${messages[messages.length - 1].content}`;
       async start(controller) {
         try {
           for await (const chunk of stream) {
-            console.log(chunk.message.content);
-
             controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
           }
           controller.close();

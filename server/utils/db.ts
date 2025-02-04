@@ -25,11 +25,11 @@ function initDB() {
   `);
 }
 
-function insertDocument(params: { 
-  $id: string, 
-  $content: string, 
-  $filename: string, 
-  $embedding: Buffer 
+function insertDocument(params: {
+  $id: string;
+  $content: string;
+  $filename: string;
+  $embedding: Buffer;
 }) {
   const stmt = db.prepare(`
     INSERT INTO documents (id, content, filename, embedding) 
