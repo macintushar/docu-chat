@@ -6,10 +6,12 @@ import {
   cosineSimilarity,
   getEmbeddings,
   queryOllama,
+  queryOllamaStream,
 } from "./utils";
-import { QueryRequest } from "./types";
+import { QueryRequest } from "../types";
 import { getAllDocuments, insertDocument } from "./db";
 import { db } from "./db";
+import { MessageType } from "../../ui/src/types";
 
 // Initialize Hono ragApp
 const ragApp = new Hono();
@@ -43,7 +45,13 @@ ragApp.post("/upload", async (c) => {
           const processChunk = async () => {
             const embedding = await getEmbeddings(chunk);
             const id = uuidv4();
-            insertDocument.run({
+            // insertDocument.run({
+            //   $id: id,
+            //   $content: chunk,
+            //   $filename: file.name,
+            //   $embedding: Buffer.from(embedding.buffer),
+            // });
+            insertDocument({
               $id: id,
               $content: chunk,
               $filename: file.name,
@@ -69,7 +77,7 @@ ragApp.post("/query", async (c) => {
     const queryEmbedding = await getEmbeddings(question);
 
     // Get all documents and find most similar ones
-    const documents = getAllDocuments.all() as unknown as {
+    const documents = getAllDocuments() as {
       id: string;
       content: string;
       filename: string;
@@ -102,6 +110,83 @@ Question: ${question}`;
     const answer = await queryOllama(prompt);
 
     return c.json({ answer });
+  } catch (error) {
+    console.error("Error processing query:", error);
+    return c.json({ error: "Error processing query" }, 500);
+  }
+});
+
+// Query endpoint
+ragApp.post("/query-stream", async (c) => {
+  try {
+    const { messages } = await c.req.json<{ messages: MessageType[] }>();
+    const queryEmbedding = await getEmbeddings(
+      messages[messages.length - 1].content
+    );
+
+    // Get all documents and find most similar ones
+    const documents = getAllDocuments() as {
+      id: string;
+      content: string;
+      filename: string;
+      embedding: Buffer;
+    }[];
+
+    const similarities = documents.map((doc) => ({
+      document: doc,
+      similarity: cosineSimilarity(
+        queryEmbedding,
+        new Float32Array(doc.embedding.buffer)
+      ),
+    }));
+
+    similarities.sort((a, b) => b.similarity - a.similarity);
+    const topDocs = similarities.slice(0, 2);
+
+    // Build context from most similar documents
+    const context = topDocs.map((doc) => doc.document.content).join("\n");
+
+    // Construct prompt
+    const prompt = `Use the following context to answer the question. If the answer cannot be found in the context, say "I cannot find the answer in the provided documents." Format all answers in markdown.
+
+Context:
+${context}
+
+Question: ${messages[messages.length - 1].content}`;
+
+    messages[messages.length - 1].content = prompt;
+
+    // Get stream from Ollama
+    const stream = await queryOllamaStream(messages);
+
+    // Set appropriate headers for streaming
+    c.header("Content-Type", "text/event-stream");
+    c.header("Cache-Control", "no-cache");
+    c.header("Connection", "keep-alive");
+
+    // Create a readable stream
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            console.log(chunk.message.content);
+
+            controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   } catch (error) {
     console.error("Error processing query:", error);
     return c.json({ error: "Error processing query" }, 500);

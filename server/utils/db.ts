@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 
 // Initialize SQLite database
-const db = new Database("rag.db");
+const db = new Database(process.env.DATABASE_URL);
 
 // Initialize database schema
 function initDB() {
@@ -25,14 +25,22 @@ function initDB() {
   `);
 }
 
-// Prepare statements for better performance
-const insertDocument = db.prepare(`
-  INSERT INTO documents (id, content, filename, embedding) 
-  VALUES ($id, $content, $filename, $embedding)
-`);
+function insertDocument(params: { 
+  $id: string, 
+  $content: string, 
+  $filename: string, 
+  $embedding: Buffer 
+}) {
+  const stmt = db.prepare(`
+    INSERT INTO documents (id, content, filename, embedding) 
+    VALUES ($id, $content, $filename, $embedding)
+  `);
+  return stmt.run(params);
+}
 
-const getAllDocuments = db.prepare(`
-  SELECT * FROM documents
-`);
+function getAllDocuments() {
+  const stmt = db.prepare(`SELECT * FROM documents`);
+  return stmt.all();
+}
 
 export { db, initDB, insertDocument, getAllDocuments };

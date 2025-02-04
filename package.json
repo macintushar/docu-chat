@@ -1,13 +1,17 @@
 {
   "name": "docu-chat",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot server/index.ts"
   },
   "dependencies": {
+    "@tanstack/react-router": "^1.99.0",
     "hono": "^4.6.20",
+    "ollama": "^0.5.12",
     "uuid": "^11.0.5"
   },
   "devDependencies": {
+    "@tanstack/router-devtools": "^1.99.0",
+    "@tanstack/router-plugin": "^1.99.0",
     "@types/bun": "latest"
   }
 }
