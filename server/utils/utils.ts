@@ -42,9 +42,11 @@ function chunkText(text: string, chunkSize: number = 1000): string[] {
 // Get embeddings using Ollama
 async function getEmbeddings(text: string): Promise<Float32Array> {
   const request: OllamaEmbedRequest = {
-    model: "nomic-embed-text",
+    model: process.env.OLLAMA_EMBEDDING_MODEL || "bge-m3:latest",
     prompt: text,
   };
+
+  console.log("Embedding model: ", request.model);
 
   const response = await fetch(`${ollamaHost}/api/embeddings`, {
     method: "POST",
@@ -68,6 +70,8 @@ async function queryOllama(prompt: string): Promise<string> {
     ],
     stream: false,
   };
+
+  console.log("Querying model: ", request.model);
 
   const response = await fetch(`${ollamaHost}/api/chat`, {
     method: "POST",
@@ -105,6 +109,24 @@ function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// Replace the cosineSimilarity function with this euclideanSimilarity function
+function euclideanSimilarity(a: Float32Array, b: Float32Array): number {
+  let sumSquaredDifferences = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    const difference = a[i] - b[i];
+    sumSquaredDifferences += difference * difference;
+  }
+
+  // Calculate Euclidean distance
+  const distance = Math.sqrt(sumSquaredDifferences);
+
+  // Convert distance to similarity score (closer to 1 means more similar)
+  // Using exponential decay formula: similarity = 1 / (1 + distance)
+  // This ensures the similarity score is between 0 and 1
+  return 1 / (1 + distance);
+}
+
 // Initialize database schema
 function initDB() {
   // Enable WAL mode for better concurrency
@@ -133,5 +155,6 @@ export {
   queryOllama,
   queryOllamaStream,
   cosineSimilarity,
+  euclideanSimilarity,
   initDB,
 };
