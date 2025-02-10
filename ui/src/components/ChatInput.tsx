@@ -35,11 +35,7 @@ export default function ChatInput({
           }
         }}
       />
-      <div className="flex items-center justify-between w-full px-4 pb-2">
-        <select>
-          <option value="user">User</option>
-          <option value="assistant">Assistant</option>
-        </select>
+      <div className="flex items-center justify-end w-full px-4 pb-2">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
             <Checkbox
