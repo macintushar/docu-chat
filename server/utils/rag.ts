@@ -1,6 +1,8 @@
+import { z } from "zod";
 import { Hono } from "hono";
-
 import { v4 as uuidv4 } from "uuid";
+import { zValidator } from "@hono/zod-validator";
+
 import {
   chunkText,
   cosineSimilarity,
@@ -9,9 +11,10 @@ import {
   queryOllamaStream,
 } from "./utils";
 import { QueryRequest } from "../types";
-import { getAllDocuments, insertDocument } from "./db";
-import { db } from "./db";
+import { db, getAllDocuments, getUniqueDocuments, insertDocument } from "./db";
+
 import { MessageType } from "../../ui/src/types";
+import { serveStatic } from "hono/bun";
 
 // Initialize Hono ragApp
 const ragApp = new Hono();
@@ -38,6 +41,8 @@ ragApp.post("/upload", async (c) => {
       batches.push(batch);
     }
 
+    const file_id = uuidv4();
+
     // Begin transaction for batch insert
     db.transaction(async () => {
       for (const batch of batches) {
@@ -54,8 +59,11 @@ ragApp.post("/upload", async (c) => {
             insertDocument({
               $id: id,
               $content: chunk,
+              $file_id: file_id,
               $filename: file.name,
               $embedding: Buffer.from(embedding.buffer),
+              $file: Buffer.from(await file.arrayBuffer()),
+              $file_type: file.type,
             });
           };
           await processChunk();
@@ -116,82 +124,147 @@ Question: ${question}`;
 });
 
 // Query endpoint
-ragApp.post("/query-stream", async (c) => {
-  try {
-    const { messages } = await c.req.json<{ messages: MessageType[] }>();
-    const queryEmbedding = await getEmbeddings(
-      messages[messages.length - 1].content
-    );
-
-    // Get all documents and find most similar ones
-    const documents = getAllDocuments() as {
-      id: string;
-      content: string;
-      filename: string;
-      embedding: Buffer;
-    }[];
-
-    const similarities = documents.map((doc) => ({
-      document: doc,
-      similarity: cosineSimilarity(
-        queryEmbedding,
-        new Float32Array(doc.embedding.buffer)
+ragApp.post(
+  "/query-stream",
+  zValidator(
+    "json",
+    z.object({
+      messages: z.array(
+        z.object({
+          role: z.enum(["system", "user", "assistant"]),
+          content: z.string(),
+        })
       ),
-    }));
+      context_enabled: z.boolean(),
+    })
+  ),
+  async (c) => {
+    try {
+      const { messages, context_enabled } = await c.req.valid("json");
 
-    similarities.sort((a, b) => b.similarity - a.similarity);
-    const topDocs = similarities.slice(0, 2);
+      let finalMessages = [...messages];
 
-    // Build context from most similar documents
-    const context = topDocs.map((doc) => doc.document.content).join("\n");
+      if (context_enabled) {
+        const queryEmbedding = await getEmbeddings(
+          messages[messages.length - 1].content
+        );
 
-    // Construct prompt
-    const prompt = `Use the following context to answer the question. If the answer cannot be found in the context, say "I cannot find the answer in the provided documents." Format all answers in markdown.
+        // Get all documents and find most similar ones
+        const documents = getAllDocuments() as {
+          id: string;
+          content: string;
+          filename: string;
+          embedding: Buffer;
+        }[];
 
-Context:
-${context}
+        const similarities = documents.map((doc) => ({
+          document: doc,
+          similarity: cosineSimilarity(
+            queryEmbedding,
+            new Float32Array(doc.embedding.buffer)
+          ),
+        }));
 
-Question: ${messages[messages.length - 1].content}`;
+        similarities.sort((a, b) => b.similarity - a.similarity);
+        const topDocs = similarities.slice(0, 2);
 
-    messages[messages.length - 1].content = prompt;
+        // Build context from most similar documents
+        const context = topDocs.map((doc) => doc.document.content).join("\n");
 
-    // Get stream from Ollama
-    const stream = await queryOllamaStream(messages);
+        // Construct prompt
+        const prompt = `Answer the question based on your knowledge. Format all answers in markdown. Use the following context to help answer the question. If the answer cannot be found in the context, say "I cannot find the answer in the provided documents.". If the context is not relevant to the question, answer the question based on your knowledge.
 
-    // Set appropriate headers for streaming
-    c.header("Content-Type", "text/event-stream");
-    c.header("Cache-Control", "no-cache");
-    c.header("Connection", "keep-alive");
+      Context:
+      ${context}`;
 
-    // Create a readable stream
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of stream) {
-            controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
+        finalMessages.splice(messages.length - 1, 0, {
+          role: "system",
+          content: prompt,
+        });
+
+        finalMessages[messages.length - 1].content = prompt;
+      }
+
+      // Get stream from Ollama
+      const stream = await queryOllamaStream(finalMessages);
+
+      // Set appropriate headers for streaming
+      c.header("Content-Type", "text/event-stream");
+      c.header("Cache-Control", "no-cache");
+      c.header("Connection", "keep-alive");
+
+      // Create a readable stream
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of stream) {
+              controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
+            }
+            controller.close();
+          } catch (error) {
+            controller.error(error);
           }
-          controller.close();
-        } catch (error) {
-          controller.error(error);
-        }
-      },
-    });
+        },
+      });
 
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
-  } catch (error) {
-    console.error("Error processing query:", error);
-    return c.json({ error: "Error processing query" }, 500);
+      return new Response(readable, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
+    } catch (error) {
+      console.error("Error processing query:", error);
+      return c.json({ error: "Error processing query" }, 500);
+    }
   }
-});
+);
 
 ragApp.get("/", (c) => {
   return c.text("Hello from RAG App");
+});
+
+ragApp.get("/documents", (c) => {
+  const documents = getUniqueDocuments();
+  return c.json(documents);
+});
+
+ragApp.get("/documents/:fileId", async (c) => {
+  try {
+    const fileId = c.req.param("fileId");
+    const stmt = db.prepare(
+      "SELECT file, filename, file_type FROM documents WHERE file_id = ? LIMIT 1"
+    );
+    const document = stmt.get(fileId) as
+      | { file: Buffer; filename: string; file_type: string }
+      | undefined;
+
+    if (!document) {
+      return c.json({ error: "File not found" }, 404);
+    }
+
+    console.log(document);
+
+    // // Set appropriate headers for file download
+    // c.header("Content-Type", document.file_type);
+    // c.header(
+    //   "Content-Disposition",
+    //   `attachment; filename="${document.filename}"`
+    // );
+    const file = new Blob([document.file], { type: document.file_type });
+    // Convert Blob to ArrayBuffer and then to Response
+    const arrayBuffer = await file.arrayBuffer();
+    return new Response(arrayBuffer, {
+      headers: {
+        "Content-Type": document.file_type,
+        "Content-Disposition": `attachment; filename="${document.filename}"`,
+      },
+    });
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    return c.json({ error: "Error downloading file" }, 500);
+  }
 });
 
 export default ragApp;
