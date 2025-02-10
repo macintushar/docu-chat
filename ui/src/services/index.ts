@@ -1,7 +1,14 @@
-import { MessageType } from "@/types";
+import {
+  KnowledgeDocument,
+  KnowledgeDocumentDownload,
+  MessageResponse,
+  MessageType,
+} from "@/types";
+
+export const API_BASE_PATH = "/api/v1";
 
 export async function askOllama(question: string) {
-  const response = await fetch(`/api/v1/rag/query`, {
+  const response = await fetch(`${API_BASE_PATH}/rag/query`, {
     method: "POST",
     body: JSON.stringify({ question: question }),
   });
@@ -11,14 +18,18 @@ export async function askOllama(question: string) {
   return data;
 }
 
-export async function askOllamaStream(messages: MessageType[]) {
-  const response = await fetch(`/api/v1/rag/query-stream`, {
+export async function askOllamaStream(
+  messages: MessageType[],
+  contextEnabled: boolean
+) {
+  const response = await fetch(`${API_BASE_PATH}/rag/query-stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       messages: messages,
+      context_enabled: contextEnabled,
     }),
   });
 
@@ -53,4 +64,25 @@ export async function askOllamaStream(messages: MessageType[]) {
       }
     },
   };
+}
+
+export async function uploadDocument(file: File) {
+  const response = await fetch(`${API_BASE_PATH}/rag/documents`, {
+    method: "POST",
+    body: file,
+  });
+  const data = await response.json();
+  return data as MessageResponse;
+}
+
+export async function getDocuments() {
+  const response = await fetch(`${API_BASE_PATH}/rag/documents`);
+  const data = await response.json();
+  return data as KnowledgeDocument[];
+}
+
+export async function downloadDocument(fileId: string) {
+  const response = await fetch(`${API_BASE_PATH}/rag/documents/${fileId}`);
+  const data = await response.blob();
+  return data;
 }

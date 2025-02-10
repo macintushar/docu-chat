@@ -37,3 +37,11 @@ export function getMessagesFromSessionStorage() {
   const storedMessages = sessionStorage.getItem("messages");
   return JSON.parse(storedMessages || "[]");
 }
+
+export function clearSessionStorage() {
+  window.sessionStorage.removeItem("messages");
+}
+
+export function titleCase(str: string) {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+}

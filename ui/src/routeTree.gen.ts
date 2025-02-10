@@ -19,7 +19,6 @@ import { Route as IndexImport } from './routes/index'
 
 const KnowledgeLazyImport = createFileRoute('/knowledge')()
 const ChatLazyImport = createFileRoute('/chat')()
-const AboutLazyImport = createFileRoute('/about')()
 
 // Create/Update Routes
 
@@ -34,12 +33,6 @@ const ChatLazyRoute = ChatLazyImport.update({
   path: '/chat',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/chat.lazy').then((d) => d.Route))
-
-const AboutLazyRoute = AboutLazyImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -56,13 +49,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutLazyImport
       parentRoute: typeof rootRoute
     }
     '/chat': {
@@ -86,14 +72,12 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutLazyRoute
   '/chat': typeof ChatLazyRoute
   '/knowledge': typeof KnowledgeLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutLazyRoute
   '/chat': typeof ChatLazyRoute
   '/knowledge': typeof KnowledgeLazyRoute
 }
@@ -101,30 +85,27 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutLazyRoute
   '/chat': typeof ChatLazyRoute
   '/knowledge': typeof KnowledgeLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/chat' | '/knowledge'
+  fullPaths: '/' | '/chat' | '/knowledge'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/chat' | '/knowledge'
-  id: '__root__' | '/' | '/about' | '/chat' | '/knowledge'
+  to: '/' | '/chat' | '/knowledge'
+  id: '__root__' | '/' | '/chat' | '/knowledge'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutLazyRoute: typeof AboutLazyRoute
   ChatLazyRoute: typeof ChatLazyRoute
   KnowledgeLazyRoute: typeof KnowledgeLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutLazyRoute: AboutLazyRoute,
   ChatLazyRoute: ChatLazyRoute,
   KnowledgeLazyRoute: KnowledgeLazyRoute,
 }
@@ -140,16 +121,12 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
         "/chat",
         "/knowledge"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/about": {
-      "filePath": "about.lazy.tsx"
     },
     "/chat": {
       "filePath": "chat.lazy.tsx"

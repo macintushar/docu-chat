@@ -1,8 +1,15 @@
 import ChatInput from "@/components/ChatInput";
+import Header from "@/components/Header";
 import Message from "@/components/Message";
-import { askOllama, askOllamaStream } from "@/services/ollama";
+import { Button } from "@/components/ui/button";
+import { askOllamaStream } from "@/services";
 import { MessageType } from "@/types";
-import { addToSessionStorage, getMessagesFromSessionStorage } from "@/utils";
+import {
+  addToSessionStorage,
+  clearSessionStorage,
+  getMessagesFromSessionStorage,
+} from "@/utils";
+import { RefreshCw } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -10,6 +17,7 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
+  const [contextEnabled, setContextEnabled] = useState(false);
 
   async function askQuestionStream() {
     setIsLoading(true);
@@ -25,7 +33,7 @@ export default function Chat() {
     addToSessionStorage({ role: "assistant", content: "" });
     setMessages(getMessagesFromSessionStorage());
 
-    const data = await askOllamaStream(messages);
+    const data = await askOllamaStream(messages, contextEnabled);
     let streamedAnswer = "";
 
     try {
@@ -44,6 +52,7 @@ export default function Chat() {
           JSON.stringify(updatedMessages)
         );
         setMessages(updatedMessages);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error in stream:", error);
@@ -57,34 +66,46 @@ export default function Chat() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full fixed inset-0 p-6 pt-12 gap-4">
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-4">
-          {messages.map((msg, idx) => (
-            <div
+    <div className="flex flex-col items-center max-h-full h-full w-full">
+      <Header
+        title="Chat"
+        subtitle="Ask the LLM anything about the documents in the knowledge base."
+        cta={
+          <Button
+            variant="outline"
+            onClick={() => {
+              setMessages([]);
+              clearSessionStorage();
+            }}
+          >
+            <RefreshCw />
+            Clear Chat
+          </Button>
+        }
+      />
+      <div className="h-full overflow-scroll w-4/5 mt-4 px-4">
+        {messages.map((msg, idx) => (
+          <div
+            className={`w-full my-2 flex ${
+              msg.role === "assistant" ? "justify-start" : "justify-end"
+            }`}
+            key={idx}
+          >
+            <Message
+              message={{ role: msg.role, content: msg.content }}
               key={idx}
-              className={
-                "w-full flex" +
-                (msg.role === "assistant" ? " justify-start" : " justify-end")
-              }
-            >
-              <Message message={{ role: msg.role, content: msg.content }} />
-            </div>
-          ))}
-        </div>
-        {isLoading && (
-          <div className="animate-pulse text-gray-600 mt-4">
-            Processing question...
+            />
           </div>
-        )}
+        ))}
+        {isLoading && <>Loading...</>}
       </div>
-
-      {/* Input area - fixed at bottom */}
-      <div className="flex-none">
+      <div className="w-4/5">
         <ChatInput
           input={question}
           setInput={setQuestion}
           handleSubmit={askQuestionStream}
+          contextEnabled={contextEnabled}
+          setContextEnabled={setContextEnabled}
         />
       </div>
     </div>

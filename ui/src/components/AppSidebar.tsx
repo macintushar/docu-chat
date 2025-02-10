@@ -1,0 +1,88 @@
+import {
+  BrainCircuitIcon,
+  Calendar,
+  Home,
+  Inbox,
+  MessageCircle,
+  Search,
+  Settings,
+} from "lucide-react";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { Link } from "@tanstack/react-router";
+import { ModeToggleButton } from "./ModeToggleButton";
+
+import Logo from "@/assets/logo.svg";
+
+// Menu items.
+const items = [
+  {
+    title: "Home",
+    url: "/",
+    icon: Home,
+  },
+  {
+    title: "Knowledge",
+    url: "/knowledge",
+    icon: BrainCircuitIcon,
+  },
+  {
+    title: "Chat",
+    url: "/chat",
+    icon: MessageCircle,
+  },
+];
+
+export function AppSidebar() {
+  return (
+    <Sidebar className="w-[64px]">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <img src={Logo} alt="Docu Chat" className="w-10 h-10 fill-white" />
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <Link to={item.url}>
+                    {({ isActive }) => {
+                      return (
+                        <>
+                          <SidebarMenuButton
+                            className="flex items-center justify-center"
+                            tooltip={{
+                              children: item.title,
+                              hidden: false,
+                            }}
+                            isActive={isActive}
+                            asChild
+                          >
+                            <item.icon />
+                          </SidebarMenuButton>
+                        </>
+                      );
+                    }}
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <ModeToggleButton />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
