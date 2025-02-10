@@ -12,9 +12,17 @@ const server = new Hono();
 
 server.use(logger());
 
-server.get("*", serveStatic({ root: "./ui/dist" }));
+const apiApp = new Hono()
+  .basePath("/v1")
+  .get("/", (c) => {
+    return c.text("Hello API v1!");
+  })
+  .route("/rag", ragApp);
 
-server.get("/page", serveStatic({ path: "./server/templates/index.html" }));
+// Mount API router at /api
+server.route("/api", apiApp);
+
+server.get("/favicon.ico", serveStatic({ path: "./ui/public/logo.png" }));
 
 server.get("/health", (c) => {
   return c.json({
@@ -26,15 +34,9 @@ server.get("/health", (c) => {
   });
 });
 
-const apiApp = new Hono().basePath("/v1");
+server.get("*", serveStatic({ root: "./ui/dist" }));
+server.get("*", serveStatic({ path: "./ui/dist/index.html" }));
 
-apiApp.get("/", (c) => {
-  return c.text("Hello API v1!");
-});
-
-apiApp.route("/rag", ragApp);
-
-// Mount API router at /api
-server.route("/api", apiApp);
+// server.get("/page", serveStatic({ path: "./server/templates/index.html" }));
 
 export default server;

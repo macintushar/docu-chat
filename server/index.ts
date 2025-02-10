@@ -2,7 +2,7 @@ import server from "./server";
 
 try {
     Bun.serve({
-        port: 8080,
+        port: process.env.SERVER_PORT || 3030,
         fetch: server.fetch
     })
 } catch (error) {

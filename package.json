@@ -1,7 +1,8 @@
 {
   "name": "docu-chat",
   "scripts": {
-    "dev": "bun run --watch server/index.ts"
+    "dev": "bun run --watch server/index.ts",
+    "start": "bun run server/index.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.2",
