@@ -1,6 +1,7 @@
 import ChatInput from "@/components/ChatInput";
 import Header from "@/components/Header";
 import Message from "@/components/Message";
+import ThoughtProcessDialog from "@/components/ThoughtProcessDialog";
 import { Button } from "@/components/ui/button";
 import { askOllamaStream } from "@/services";
 import { MessageType } from "@/types";
@@ -18,6 +19,7 @@ export default function Chat() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [contextEnabled, setContextEnabled] = useState(false);
+  const [thoughtProcess, setThoughtProcess] = useState<string>("");
 
   async function askQuestionStream() {
     setIsLoading(true);
@@ -94,6 +96,7 @@ export default function Chat() {
             <Message
               message={{ role: msg.role, content: msg.content }}
               key={idx}
+              setThoughtProcess={setThoughtProcess}
             />
           </div>
         ))}
@@ -108,6 +111,11 @@ export default function Chat() {
           setContextEnabled={setContextEnabled}
         />
       </div>
+      <ThoughtProcessDialog
+        thoughtProcess={thoughtProcess}
+        open={thoughtProcess.length > 0}
+        setOpen={(open) => setThoughtProcess(open ? thoughtProcess : "")}
+      />
     </div>
   );
 }

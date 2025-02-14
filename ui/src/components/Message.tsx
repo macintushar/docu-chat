@@ -11,9 +11,14 @@ import { Button } from "./ui/button";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import CodeBlock from "./CodeBlock";
 
-export default function Message({ message }: { message: MessageType }) {
+export default function Message({
+  message,
+  setThoughtProcess,
+}: {
+  message: MessageType;
+  setThoughtProcess: (thoughtProcess: string) => void;
+}) {
   const [isCopied, setIsCopied] = useState(false);
   const ref = useRef<SyntaxHighlighter>(null);
 
@@ -41,10 +46,20 @@ export default function Message({ message }: { message: MessageType }) {
       <div
         className={
           "w-full rounded-lg prose dark:prose-invert p-2 " +
-          (message.role === "user" ? "dark:bg-zinc-700 bg-zinc-200" : "")
+          (message.role === "user" ? "dark:bg-zinc-800 bg-zinc-200" : "")
         }
       >
-        {thinkContent && <div className="alert alert-info">Thinking...</div>}
+        {thinkContent && (
+          <div
+            className="alert alert-info cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 w-fit px-2 py-1 rounded-md"
+            onClick={() => {
+              console.log(thinkContent);
+              setThoughtProcess(thinkContent);
+            }}
+          >
+            Thinking...
+          </div>
+        )}
         <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
           {cleanContent}
         </Markdown>
