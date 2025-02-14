@@ -9,6 +9,9 @@ import { MessageType } from "../../ui/src/types";
 import { Ollama } from "ollama";
 
 const ollamaHost = process.env.OLLAMA_HOST || "http://localhost:11434";
+const ollamaChatModel = process.env.OLLAMA_CHAT_MODEL || "llama3.2:latest";
+const ollamaEmbeddingModel =
+  process.env.OLLAMA_EMBEDDING_MODEL || "bge-m3:latest";
 
 const ollama = new Ollama({
   host: ollamaHost,
@@ -42,7 +45,7 @@ function chunkText(text: string, chunkSize: number = 1000): string[] {
 // Get embeddings using Ollama
 async function getEmbeddings(text: string): Promise<Float32Array> {
   const request: OllamaEmbedRequest = {
-    model: process.env.OLLAMA_EMBEDDING_MODEL || "bge-m3:latest",
+    model: ollamaEmbeddingModel,
     prompt: text,
   };
 
@@ -61,7 +64,7 @@ async function getEmbeddings(text: string): Promise<Float32Array> {
 // Query Ollama
 async function queryOllama(prompt: string): Promise<string> {
   const request: OllamaRequest = {
-    model: process.env.OLLAMA_MODEL || "llama3.2:latest",
+    model: ollamaChatModel,
     messages: [
       {
         role: "user",
@@ -88,7 +91,7 @@ async function queryOllama(prompt: string): Promise<string> {
 
 async function queryOllamaStream(messages: MessageType[]) {
   return await ollama.chat({
-    model: "llama3.2:latest",
+    model: ollamaChatModel,
     messages: messages,
     stream: true,
   });
