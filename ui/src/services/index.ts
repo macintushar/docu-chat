@@ -20,7 +20,7 @@ export async function askOllama(question: string) {
 
 export async function askOllamaStream(
   messages: MessageType[],
-  contextEnabled: boolean
+  contextEnabled: boolean,
 ) {
   const response = await fetch(`${API_BASE_PATH}/rag/query-stream`, {
     method: "POST",

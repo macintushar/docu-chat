@@ -15,6 +15,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -45,12 +46,12 @@ const items = [
 
 export function AppSidebar() {
   return (
-    <Sidebar className="w-[64px]">
+    <Sidebar className="w-[64px]" variant="inset">
+      <SidebarHeader>
+        <img src={Logo} alt="Docu Chat" className="fill-white" />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-            <img src={Logo} alt="Docu Chat" className="fill-white" />
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

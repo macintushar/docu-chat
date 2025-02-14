@@ -51,7 +51,7 @@ export default function Chat() {
 
         window.sessionStorage.setItem(
           "messages",
-          JSON.stringify(updatedMessages)
+          JSON.stringify(updatedMessages),
         );
         setMessages(updatedMessages);
         setIsLoading(false);
