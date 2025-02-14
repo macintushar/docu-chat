@@ -22,7 +22,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { ModeToggleButton } from "./ModeToggleButton";
 
-import Logo from "@/assets/logo.svg";
+import Logo from "@/assets/logo.png";
 
 // Menu items.
 const items = [
@@ -49,7 +49,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
-            <img src={Logo} alt="Docu Chat" className="w-10 h-10 fill-white" />
+            <img src={Logo} alt="Docu Chat" className="fill-white" />
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
