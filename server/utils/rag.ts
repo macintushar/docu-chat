@@ -13,9 +13,6 @@ import {
 import { QueryRequest } from "../types";
 import { db, getAllDocuments, getUniqueDocuments, insertDocument } from "./db";
 
-import { MessageType } from "../../ui/src/types";
-import { serveStatic } from "hono/bun";
-
 // Initialize Hono ragApp
 const ragApp = new Hono();
 
@@ -183,6 +180,8 @@ ragApp.post(
         });
 
         finalMessages[messages.length - 1].content = prompt;
+
+        console.log(finalMessages);
       }
 
       // Get stream from Ollama
