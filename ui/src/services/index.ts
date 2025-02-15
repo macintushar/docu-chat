@@ -66,13 +66,21 @@ export async function askOllamaStream(
   };
 }
 
-export async function uploadDocument(file: File) {
-  const response = await fetch(`${API_BASE_PATH}/rag/documents`, {
+export async function uploadDocument(files: FileList) {
+  const formData = new FormData();
+
+  for (let i = 0; i < files.length; i++) {
+    formData.append("file", files[i]);
+  }
+
+  console.log(formData);
+
+  const response = await fetch("/api/v1/rag/upload", {
     method: "POST",
-    body: file,
-  });
-  const data = await response.json();
-  return data as MessageResponse;
+    body: formData,
+  }).then((res) => res.json());
+
+  return response as MessageResponse;
 }
 
 export async function getDocuments() {
