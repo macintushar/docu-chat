@@ -17,7 +17,7 @@ function RootComponent() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
-        <SidebarProvider>
+        <SidebarProvider className="font-base">
           <AppSidebar />
           <div className="flex w-full text-zinc-900 dark:text-zinc-50 bg-zinc-50 dark:bg-zinc-900">
             <div className="flex items-center justify-center h-full">

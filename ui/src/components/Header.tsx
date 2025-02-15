@@ -9,7 +9,7 @@ export default function Header({ title, subtitle, cta, extra }: HeaderProps) {
   return (
     <div className="flex flex-col w-full gap-2">
       <div className="flex items-end justify-between w-full">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+        <h1 className="scroll-m-20 text-4xl font-pop font-extrabold tracking-tight lg:text-5xl">
           {title}
         </h1>
         {extra && extra}
