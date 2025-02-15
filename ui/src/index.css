@@ -42,6 +42,10 @@
     --sidebar-accent-foreground: hsl(240 5.9% 10%);
     --sidebar-border: hsl(220 13% 91%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+    --scrollbar: var(--color-zinc-800);
+    --scrollbar-border: var(--color-zinc-50);
+    --scrollbar-hover: var(--color-zinc-700);
   }
 
   .dark {
@@ -78,6 +82,10 @@
     --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
     --sidebar-border: hsl(240 3.7% 15.9%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+    --scrollbar: var(--color-zinc-200);
+    --scrollbar-border: var(--color-zinc-900);
+    --scrollbar-hover: var(--color-zinc-100);
   }
 }
 
@@ -105,4 +113,163 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
 
   --color-sidebar: var(--sidebar);
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("./src/assets/Geist.ttf");
+}
+
+@theme {
+  --font-base: "Geist";
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 100;
+  src: url("./src/assets/fonts/Poppins/Poppins-ExtraLight.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 200;
+  src: url("./src/assets/fonts/Poppins/Poppins-Light.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 300;
+  src: url("./src/assets/fonts/Poppins/Poppins-Thin.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  src: url("./src/assets/fonts/Poppins/Poppins-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 500;
+  src: url("./src/assets/fonts/Poppins/Poppins-Medium.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  src: url("./src/assets/fonts/Poppins/Poppins-SemiBold.ttf");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  src: url("./src/assets/fonts/Poppins/Poppins-Bold.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 800;
+  src: url("./src/assets/fonts/Poppins/Poppins-ExtraBold.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 900;
+  src: url("./src/assets/fonts/Poppins/Poppins-Black.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 100;
+  src: url("./src/assets/fonts/Poppins/Poppins-ExtraLightItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 200;
+  src: url("./src/assets/fonts/Poppins/Poppins-LightItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 300;
+  src: url("./src/assets/fonts/Poppins/Poppins-ThinItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 400;
+  src: url("./src/assets/fonts/Poppins/Poppins-RegularItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 500;
+  src: url("./src/assets/fonts/Poppins/Poppins-MediumItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 600;
+  src: url("./src/assets/fonts/Poppins/Poppins-SemiBoldItalic.ttf");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 700;
+  src: url("./src/assets/fonts/Poppins/Poppins-BoldItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 800;
+  src: url("./src/assets/fonts/Poppins/Poppins-ExtraBoldItalic.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 900;
+  src: url("./src/assets/fonts/Poppins/Poppins-BlackItalic.ttf");
+}
+
+@theme {
+  --font-pop: "Poppins";
+}
+
+@layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    width: 12px;
+    height: 20px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: transparent;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border-radius: 100vh;
+    border: 3px solid var(--scrollbar-border);
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-hover);
+  }
 }

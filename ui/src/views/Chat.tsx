@@ -85,7 +85,7 @@ export default function Chat() {
           </Button>
         }
       />
-      <div className="h-full overflow-scroll w-4/5 mt-4 px-4">
+      <div className="h-full overflow-y-scroll scrollbar w-4/5 max-w-4/5 mt-4 px-4 mb-2">
         {messages.map((msg, idx) => (
           <div
             className={`w-full my-2 flex ${
