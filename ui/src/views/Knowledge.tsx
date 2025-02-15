@@ -1,6 +1,8 @@
 import { DataTable } from "@/components/DataTable";
 import Header from "@/components/Header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import UploadFileButton from "@/components/UploadFileButton";
 import { downloadDocument, uploadDocument } from "@/services";
 import { KnowledgeDocument } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -22,10 +24,33 @@ function ActionButton({
   variant?: "secondary" | "destructive";
 }) {
   return (
-    <Button variant={variant} onClick={onClick}>
+    <Button variant={variant} onClick={onClick} size="icon">
       {icon}
     </Button>
   );
+}
+
+const FILE_TYPES = [
+  {
+    value: "text/markdown",
+    label: "Markdown",
+  },
+  {
+    value: "text/plain",
+    label: "Plain Text",
+  },
+  {
+    value: "application/json",
+    label: "JSON",
+  },
+];
+
+function formatFileType(fileType: string) {
+  const type = FILE_TYPES.find((type) => fileType.includes(type.value));
+  if (!type) {
+    return "Unknown";
+  }
+  return type ? type.label : "Unknown";
 }
 
 export default function Knowledge() {
@@ -36,11 +61,6 @@ export default function Knowledge() {
       return res.json();
     },
   });
-
-  const handleDocumentUpload = async (file: File) => {
-    const res = await uploadDocument(file);
-    return res;
-  };
 
   const handleDocumentDownload = async (fileId: string) => {
     const res = await downloadDocument(fileId);
@@ -55,16 +75,31 @@ export default function Knowledge() {
     {
       header: "File Type",
       accessorKey: "file_type",
+      cell: ({ cell }) => {
+        return (
+          <div>
+            <Badge variant="secondary">
+              {formatFileType(cell.getValue() as string)}{" "}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
-      header: "Actions",
+      header: () => {
+        return (
+          <div className="flex justify-end">
+            <div className="w-16">Actions</div>
+          </div>
+        );
+      },
       accessorKey: "file_id",
       cell: ({ row }) => {
         const handleDownload = async () => {
           try {
             const file = await handleDocumentDownload(row.original.file_id);
             const url = URL.createObjectURL(
-              new Blob([file], { type: row.original.file_type })
+              new Blob([file], { type: row.original.file_type }),
             );
             const a = document.createElement("a");
             a.href = url;
@@ -88,7 +123,7 @@ export default function Knowledge() {
         };
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-end">
             <ActionButton
               icon={<ArrowDownToLineIcon />}
               onClick={handleDownload}
@@ -118,14 +153,7 @@ export default function Knowledge() {
       <Header
         title="Knowledge"
         subtitle="Documents available for context for the LLM."
-        cta={
-          <Button>
-            <div className="flex gap-2 items-center">
-              <ArrowUpFromLineIcon />
-              Upload Document
-            </div>
-          </Button>
-        }
+        cta={<UploadFileButton />}
       />
       <div className="w-2/3">
         <DataTable columns={columns} data={data as KnowledgeDocument[]} />
