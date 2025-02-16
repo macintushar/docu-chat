@@ -85,23 +85,32 @@ export default function Chat() {
           </Button>
         }
       />
-      <div className="h-full overflow-y-scroll scrollbar w-4/5 max-w-4/5 mt-4 px-4 mb-2">
-        {messages.map((msg, idx) => (
-          <div
-            className={`w-full my-2 flex ${
-              msg.role === "assistant" ? "justify-start" : "justify-end"
-            }`}
-            key={idx}
-          >
-            <Message
-              message={{ role: msg.role, content: msg.content }}
+      {messages.length > 0 ? (
+        <div className="h-full overflow-y-scroll scrollbar w-4/5 max-w-4/5 mt-4 px-4 mb-2">
+          {messages.map((msg, idx) => (
+            <div
+              className={`w-full my-2 flex ${
+                msg.role === "assistant" ? "justify-start" : "justify-end"
+              }`}
               key={idx}
-              setThoughtProcess={setThoughtProcess}
-            />
+            >
+              <Message
+                message={{ role: msg.role, content: msg.content }}
+                key={idx}
+                setThoughtProcess={setThoughtProcess}
+              />
+            </div>
+          ))}
+          {isLoading && <>Loading...</>}
+        </div>
+      ) : (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-zinc-200 text-center">
+            <p>No messages yet.</p>
+            <p>Start a conversation by asking a question below.</p>
           </div>
-        ))}
-        {isLoading && <>Loading...</>}
-      </div>
+        </div>
+      )}
       <div className="w-4/5">
         <ChatInput
           input={question}
