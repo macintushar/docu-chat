@@ -7,17 +7,23 @@ import {
   chunkText,
   cosineSimilarity,
   getEmbeddings,
-  queryOllama,
   queryOllamaStream,
-} from "./utils";
-import { QueryRequest } from "../types";
-import { db, getAllDocuments, getUniqueDocuments, insertDocument } from "./db";
+} from "../utils";
 
-// Initialize Hono ragApp
-const ragApp = new Hono();
+import {
+  db,
+  getAllDocuments,
+  getFileById,
+  getUniqueDocuments,
+  insertDocument,
+  insertFile,
+} from "../db";
+
+// Initialize Hono ragRouter
+const ragRouter = new Hono();
 
 // File upload endpoint
-ragApp.post("/upload", async (c) => {
+ragRouter.post("/upload", async (c) => {
   try {
     const formData = await c.req.formData();
     const file = formData.get("file") as File;
@@ -40,6 +46,13 @@ ragApp.post("/upload", async (c) => {
 
     const file_id = uuidv4();
 
+    insertFile({
+      $file_id: file_id,
+      $filename: file.name,
+      $file: Buffer.from(await file.arrayBuffer()),
+      $file_type: file.type,
+    });
+
     // Begin transaction for batch insert
     db.transaction(async () => {
       for (const batch of batches) {
@@ -47,20 +60,11 @@ ragApp.post("/upload", async (c) => {
           const processChunk = async () => {
             const embedding = await getEmbeddings(chunk);
             const id = uuidv4();
-            // insertDocument.run({
-            //   $id: id,
-            //   $content: chunk,
-            //   $filename: file.name,
-            //   $embedding: Buffer.from(embedding.buffer),
-            // });
             insertDocument({
               $id: id,
               $content: chunk,
               $file_id: file_id,
-              $filename: file.name,
               $embedding: Buffer.from(embedding.buffer),
-              $file: Buffer.from(await file.arrayBuffer()),
-              $file_type: file.type,
             });
           };
           await processChunk();
@@ -76,52 +80,7 @@ ragApp.post("/upload", async (c) => {
 });
 
 // Query endpoint
-ragApp.post("/query", async (c) => {
-  try {
-    const { question } = await c.req.json<QueryRequest>();
-    const queryEmbedding = await getEmbeddings(question);
-
-    // Get all documents and find most similar ones
-    const documents = getAllDocuments() as {
-      id: string;
-      content: string;
-      filename: string;
-      embedding: Buffer;
-    }[];
-
-    const similarities = documents.map((doc) => ({
-      document: doc,
-      similarity: cosineSimilarity(
-        queryEmbedding,
-        new Float32Array(doc.embedding.buffer)
-      ),
-    }));
-
-    similarities.sort((a, b) => b.similarity - a.similarity);
-    const topDocs = similarities.slice(0, 2);
-
-    // Build context from most similar documents
-    const context = topDocs.map((doc) => doc.document.content).join("\n");
-
-    // Construct prompt
-    const prompt = `Use the following context to answer the question. If the answer cannot be found in the context, say "I cannot find the answer in the provided documents." Format all answers in markdown.
-
-Context:
-${context}
-
-Question: ${question}`;
-    // Get response from Ollama
-    const answer = await queryOllama(prompt);
-
-    return c.json({ answer });
-  } catch (error) {
-    console.error("Error processing query:", error);
-    return c.json({ error: "Error processing query" }, 500);
-  }
-});
-
-// Query endpoint
-ragApp.post(
+ragRouter.post(
   "/query-stream",
   zValidator(
     "json",
@@ -180,8 +139,6 @@ ragApp.post(
         });
 
         finalMessages[messages.length - 1].content = prompt;
-
-        console.log(finalMessages);
       }
 
       // Get stream from Ollama
@@ -220,22 +177,15 @@ ragApp.post(
   }
 );
 
-ragApp.get("/", (c) => {
-  return c.text("Hello from RAG App");
-});
-
-ragApp.get("/documents", (c) => {
+ragRouter.get("/documents", (c) => {
   const documents = getUniqueDocuments();
   return c.json(documents);
 });
 
-ragApp.get("/documents/:fileId", async (c) => {
+ragRouter.get("/documents/:fileId", async (c) => {
   try {
     const fileId = c.req.param("fileId");
-    const stmt = db.prepare(
-      "SELECT file, filename, file_type FROM documents WHERE file_id = ? LIMIT 1"
-    );
-    const document = stmt.get(fileId) as
+    const document = getFileById(fileId) as
       | { file: Buffer; filename: string; file_type: string }
       | undefined;
 
@@ -243,17 +193,11 @@ ragApp.get("/documents/:fileId", async (c) => {
       return c.json({ error: "File not found" }, 404);
     }
 
-    console.log(document);
-
-    // // Set appropriate headers for file download
-    // c.header("Content-Type", document.file_type);
-    // c.header(
-    //   "Content-Disposition",
-    //   `attachment; filename="${document.filename}"`
-    // );
     const file = new Blob([document.file], { type: document.file_type });
+
     // Convert Blob to ArrayBuffer and then to Response
     const arrayBuffer = await file.arrayBuffer();
+
     return new Response(arrayBuffer, {
       headers: {
         "Content-Type": document.file_type,
@@ -266,4 +210,4 @@ ragApp.get("/documents/:fileId", async (c) => {
   }
 });
 
-export default ragApp;
+export default ragRouter;

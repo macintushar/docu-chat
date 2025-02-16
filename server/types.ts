@@ -1,4 +1,3 @@
-// Types
 type QueryRequest = {
   question: string;
 };
