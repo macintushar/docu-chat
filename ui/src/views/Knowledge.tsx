@@ -7,12 +7,9 @@ import { downloadDocument, uploadDocument } from "@/services";
 import { KnowledgeDocument } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowDownToLineIcon,
-  ArrowUpFromLineIcon,
-  TrashIcon,
-} from "lucide-react";
+import { ArrowDownToLineIcon, TrashIcon } from "lucide-react";
 import { toast } from "sonner";
+import { default as dayjs } from "dayjs";
 
 function ActionButton({
   icon,
@@ -73,13 +70,23 @@ export default function Knowledge() {
       accessorKey: "filename",
     },
     {
+      header: "Created At",
+      accessorKey: "created_at",
+      cell: ({ cell }) => {
+        const createdAt = dayjs(cell.getValue() as string).format(
+          "MMMM D, YYYY h:mm A",
+        );
+        return <div>{createdAt}</div>;
+      },
+    },
+    {
       header: "File Type",
       accessorKey: "file_type",
       cell: ({ cell }) => {
         return (
           <div>
             <Badge variant="secondary">
-              {formatFileType(cell.getValue() as string)}{" "}
+              {formatFileType(cell.getValue() as string)}
             </Badge>
           </div>
         );

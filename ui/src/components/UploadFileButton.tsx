@@ -44,7 +44,7 @@ export default function UploadFileButton() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md text-zinc-900 dark:text-zinc-50">
         <DialogHeader>
-          <DialogTitle>Upload Document(s)</DialogTitle>
+          <DialogTitle className="font-pop">Upload Document(s)</DialogTitle>
           <DialogDescription>
             Add one or more documents to the knowledge base as context for the
             LLM.

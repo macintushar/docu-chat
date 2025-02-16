@@ -5,6 +5,7 @@ export type MessageType = {
 
 export type KnowledgeDocument = {
   file_id: string;
+  created_at: string;
   filename: string;
   file_type: string;
 };

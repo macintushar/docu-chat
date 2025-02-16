@@ -46,6 +46,8 @@
     --scrollbar: var(--color-zinc-800);
     --scrollbar-border: var(--color-zinc-50);
     --scrollbar-hover: var(--color-zinc-700);
+
+    font-family: "Geist";
   }
 
   .dark {

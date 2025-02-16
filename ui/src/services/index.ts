@@ -7,17 +7,6 @@ import {
 
 export const API_BASE_PATH = "/api/v1";
 
-export async function askOllama(question: string) {
-  const response = await fetch(`${API_BASE_PATH}/rag/query`, {
-    method: "POST",
-    body: JSON.stringify({ question: question }),
-  });
-  console.log("here");
-
-  const data = await response.json();
-  return data;
-}
-
 export async function askOllamaStream(
   messages: MessageType[],
   contextEnabled: boolean,
@@ -72,8 +61,6 @@ export async function uploadDocument(files: FileList) {
   for (let i = 0; i < files.length; i++) {
     formData.append("file", files[i]);
   }
-
-  console.log(formData);
 
   const response = await fetch("/api/v1/rag/upload", {
     method: "POST",
