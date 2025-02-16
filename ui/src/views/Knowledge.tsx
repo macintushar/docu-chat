@@ -70,11 +70,11 @@ export default function Knowledge() {
       accessorKey: "filename",
     },
     {
-      header: "Created At",
+      header: "Uploaded On",
       accessorKey: "created_at",
       cell: ({ cell }) => {
         const createdAt = dayjs(cell.getValue() as string).format(
-          "MMMM D, YYYY h:mm A",
+          "MMMM D, YYYY [at] h:mm A",
         );
         return <div>{createdAt}</div>;
       },
