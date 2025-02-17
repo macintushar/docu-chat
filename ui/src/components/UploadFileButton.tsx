@@ -17,23 +17,33 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { uploadDocument } from "@/services";
 
-async function handleUpload(files: FileList | null) {
-  if (files) {
-    const res = await uploadDocument(files);
-    if (res.message) {
-      toast.success(res.message);
-    } else {
-      toast.error("An error occurred while uploading the document.");
-    }
-  } else {
-    toast.error("Please select a file to upload.");
-  }
-}
+type UploadFileButtonProps = {
+  refetchDocuments: () => void;
+};
 
-export default function UploadFileButton() {
+export default function UploadFileButton({
+  refetchDocuments,
+}: UploadFileButtonProps) {
   const [files, setFiles] = useState<FileList | null>(null);
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+
+  async function handleUpload(files: FileList | null) {
+    if (files) {
+      const res = await uploadDocument(files);
+      if (res.message) {
+        toast.success(res.message);
+        setOpenUploadDialog(false);
+        refetchDocuments();
+      } else {
+        toast.error("An error occurred while uploading the document.");
+      }
+    } else {
+      toast.error("Please select a file to upload.");
+    }
+  }
+
   return (
-    <Dialog>
+    <Dialog open={openUploadDialog} onOpenChange={setOpenUploadDialog}>
       <DialogTrigger asChild>
         <Button>
           <div className="flex gap-2 items-center">
@@ -74,7 +84,7 @@ export default function UploadFileButton() {
           </DialogClose>
           <Button
             onClick={() =>
-              files ? uploadDocument(files) : toast.info("Please select a file")
+              files ? handleUpload(files) : toast.error("Please select a file")
             }
             type="submit"
           >
