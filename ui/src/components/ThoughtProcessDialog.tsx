@@ -2,11 +2,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Markdown from "react-markdown";
+import { Button } from "./ui/button";
 
 type ThoughtProcessDialogProps = {
   thoughtProcess: string;
@@ -31,7 +33,14 @@ export default function ThoughtProcessDialog({
             This is what the LLM thought about the question.
           </DialogDescription>
         </DialogHeader>
-        <Markdown>{thoughtProcess}</Markdown>
+        <div className="max-h-[60vh] overflow-y-auto scrollbar">
+          <Markdown>{thoughtProcess}</Markdown>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -4,12 +4,10 @@ import { useThinkContent } from "@/utils";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 import { Button } from "./ui/button";
 import { CheckIcon, CopyIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Message({
@@ -20,7 +18,6 @@ export default function Message({
   setThoughtProcess: (thoughtProcess: string) => void;
 }) {
   const [isCopied, setIsCopied] = useState(false);
-  const ref = useRef<SyntaxHighlighter>(null);
 
   const { thinkContent, cleanContent } = useThinkContent({
     role: "assistant",
@@ -40,6 +37,12 @@ export default function Message({
       toast.error("Failed to copy message");
     }
   };
+
+  useEffect(() => {
+    if (thinkContent) {
+      setThoughtProcess(thinkContent);
+    }
+  }, [thinkContent]);
 
   return (
     <div className="group flex flex-col gap-3">
@@ -61,7 +64,7 @@ export default function Message({
           {cleanContent}
         </Markdown>
       </div>
-      {message.role === "assistant" && (
+      {message.role === "assistant" && cleanContent.length > 0 && (
         <Button
           variant="ghost"
           className="group-hover:visible invisible hover:cursor-pointer w-fit"
