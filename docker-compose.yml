@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  docuchat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${SERVER_PORT:-3030}:${SERVER_PORT:-3030}"
+    env_file: .env
+    volumes:
+      - ./data:/app/data  # For persistent database storage
+
+networks:
+  default:
+    # This enables host.docker.internal on Linux
+    name: docuchat
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.extra_opts: ["com.docker.network.bridge.enable_icc=true"]
