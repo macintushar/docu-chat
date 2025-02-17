@@ -12,6 +12,8 @@ import {
 
 import {
   db,
+  deleteDocument,
+  deleteFile,
   getAllDocuments,
   getFileById,
   getUniqueDocuments,
@@ -208,6 +210,18 @@ ragRouter.get("/documents/:fileId", async (c) => {
     console.error("Error downloading file:", error);
     return c.json({ error: "Error downloading file" }, 500);
   }
+});
+
+ragRouter.delete("/documents/:fileId", async (c) => {
+  const fileId = c.req.param("fileId");
+  const deleteDocs = deleteDocument(fileId);
+  const deleteFiles = deleteFile(fileId);
+
+  if (deleteDocs && deleteFiles) {
+    return c.json({ message: "File deleted" });
+  }
+
+  return c.json({ error: "Error deleting file" }, 500);
 });
 
 export default ragRouter;

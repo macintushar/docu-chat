@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import UploadFileButton from "@/components/UploadFileButton";
-import { downloadDocument, uploadDocument } from "@/services";
+import { deleteDocument, downloadDocument, uploadDocument } from "@/services";
 import { KnowledgeDocument } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -51,7 +51,7 @@ function formatFileType(fileType: string) {
 }
 
 export default function Knowledge() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, refetch, error } = useQuery({
     queryKey: ["documents"],
     queryFn: async () => {
       const res = await fetch("/api/v1/rag/documents");
@@ -123,10 +123,13 @@ export default function Knowledge() {
         };
 
         const handleDelete = async () => {
-          // const res = await deleteDocument(row.original.file_id);
-          // return res;
-
-          console.log("Deleting file", row.original.file_id);
+          const res = await deleteDocument(row.original.file_id);
+          if (res.message) {
+            toast.success(res.message);
+            refetch();
+          } else {
+            toast.error("Error deleting file");
+          }
         };
 
         return (
@@ -160,7 +163,7 @@ export default function Knowledge() {
       <Header
         title="Knowledge"
         subtitle="Documents available for context for the LLM."
-        cta={<UploadFileButton />}
+        cta={<UploadFileButton refetchDocuments={refetch} />}
       />
       <div className="w-2/3">
         <DataTable columns={columns} data={data as KnowledgeDocument[]} />

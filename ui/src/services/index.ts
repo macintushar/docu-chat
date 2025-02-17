@@ -81,3 +81,10 @@ export async function downloadDocument(fileId: string) {
   const data = await response.blob();
   return data;
 }
+
+export async function deleteDocument(fileId: string) {
+  const response = await fetch(`${API_BASE_PATH}/rag/documents/${fileId}`, {
+    method: "DELETE",
+  });
+  return response.json();
+}

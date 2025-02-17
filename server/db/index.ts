@@ -87,6 +87,16 @@ function getFileById(fileId: string) {
   return stmt.get(fileId);
 }
 
+function deleteDocument(fileId: string) {
+  const deleteDocuments = db.prepare(`DELETE FROM documents WHERE file_id = ?`);
+  return deleteDocuments.run(fileId);
+}
+
+function deleteFile(fileId: string) {
+  const deleteFile = db.prepare(`DELETE FROM files WHERE file_id = ?`);
+  return deleteFile.run(fileId);
+}
+
 export {
   db,
   initDB,
@@ -95,4 +105,6 @@ export {
   getAllDocuments,
   getUniqueDocuments,
   getFileById,
+  deleteDocument,
+  deleteFile,
 };
