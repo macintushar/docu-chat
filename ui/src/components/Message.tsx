@@ -13,9 +13,13 @@ import { toast } from "sonner";
 export default function Message({
   message,
   setThoughtProcess,
+  openThoughtProcess,
+  setOpenThoughtProcess,
 }: {
   message: MessageType;
   setThoughtProcess: (thoughtProcess: string) => void;
+  openThoughtProcess: boolean;
+  setOpenThoughtProcess: (open: boolean) => void;
 }) {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -55,7 +59,9 @@ export default function Message({
         {thinkContent && (
           <div
             className="alert alert-info cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 w-fit px-2 py-1 rounded-md"
-            onClick={() => setThoughtProcess(thinkContent)}
+            onClick={() => {
+              setOpenThoughtProcess(true);
+            }}
           >
             Thinking...
           </div>

@@ -20,6 +20,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [contextEnabled, setContextEnabled] = useState(false);
   const [thoughtProcess, setThoughtProcess] = useState<string>("");
+  const [openThoughtProcess, setOpenThoughtProcess] = useState(false);
 
   async function askQuestionStream() {
     setIsLoading(true);
@@ -96,8 +97,10 @@ export default function Chat() {
             >
               <Message
                 message={{ role: msg.role, content: msg.content }}
-                key={idx}
                 setThoughtProcess={setThoughtProcess}
+                openThoughtProcess={openThoughtProcess}
+                setOpenThoughtProcess={setOpenThoughtProcess}
+                key={idx}
               />
             </div>
           ))}
@@ -122,8 +125,8 @@ export default function Chat() {
       </div>
       <ThoughtProcessDialog
         thoughtProcess={thoughtProcess}
-        open={thoughtProcess.length > 0}
-        setOpen={(open) => setThoughtProcess(open ? thoughtProcess : "")}
+        open={openThoughtProcess}
+        setOpen={setOpenThoughtProcess}
       />
     </div>
   );
