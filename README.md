@@ -1,8 +1,14 @@
 # DocuChat
 
-DocuChat is an app that allows users to chat with their own documents.
+DocuChat is a local-first chat app that allows users to chat with their own documents.
 
 It allows users to upload documents, which are then processed and then used as context for the LLM to chat with.
+
+## Running the app
+
+### Docker
+
+To run the app using Docker, you can use the provided `docker-compose.yml` file.
 
 ## Development
 
