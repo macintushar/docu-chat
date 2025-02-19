@@ -94,11 +94,12 @@ ragRouter.post(
         })
       ),
       context_enabled: z.boolean(),
+      model: z.string(),
     })
   ),
   async (c) => {
     try {
-      const { messages, context_enabled } = await c.req.valid("json");
+      const { messages, context_enabled, model } = await c.req.valid("json");
 
       let finalMessages = [...messages];
 
@@ -144,7 +145,7 @@ ragRouter.post(
       }
 
       // Get stream from Ollama
-      const stream = await queryOllamaStream(finalMessages);
+      const stream = await queryOllamaStream(finalMessages, model);
 
       // Set appropriate headers for streaming
       c.header("Content-Type", "text/event-stream");
@@ -174,7 +175,7 @@ ragRouter.post(
       });
     } catch (error) {
       console.error("Error processing query:", error);
-      return c.json({ error: "Error processing query" }, 500);
+      return c.json({ error: "Error processing query: " + error }, 500);
     }
   }
 );

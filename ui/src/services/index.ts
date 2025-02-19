@@ -1,4 +1,5 @@
 import {
+  ChatConfig,
   KnowledgeDocument,
   KnowledgeDocumentDownload,
   MessageResponse,
@@ -10,6 +11,7 @@ export const API_BASE_PATH = "/api/v1";
 export async function askOllamaStream(
   messages: MessageType[],
   contextEnabled: boolean,
+  model: string,
 ) {
   const response = await fetch(`${API_BASE_PATH}/rag/query-stream`, {
     method: "POST",
@@ -19,11 +21,15 @@ export async function askOllamaStream(
     body: JSON.stringify({
       messages: messages,
       context_enabled: contextEnabled,
+      model: model,
     }),
   });
 
   if (!response.ok) {
-    throw new Error("Network response was not ok");
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || "There was an error processing your request.",
+    );
   }
 
   if (!response.body) {
@@ -87,4 +93,9 @@ export async function deleteDocument(fileId: string) {
     method: "DELETE",
   });
   return response.json();
+}
+
+export async function getChatConfigs() {
+  const response = await fetch(`${API_BASE_PATH}/chat/configs`);
+  return response.json() as Promise<ChatConfig>;
 }

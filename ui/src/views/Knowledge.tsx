@@ -31,14 +31,17 @@ const FILE_TYPES = [
   {
     value: "text/markdown",
     label: "Markdown",
+    miniText: "MD",
   },
   {
     value: "text/plain",
     label: "Plain Text",
+    miniText: "TXT",
   },
   {
     value: "application/json",
     label: "JSON",
+    miniText: "JSON",
   },
 ];
 

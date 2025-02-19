@@ -13,12 +13,10 @@ import { toast } from "sonner";
 export default function Message({
   message,
   setThoughtProcess,
-  openThoughtProcess,
   setOpenThoughtProcess,
 }: {
   message: MessageType;
   setThoughtProcess: (thoughtProcess: string) => void;
-  openThoughtProcess: boolean;
   setOpenThoughtProcess: (open: boolean) => void;
 }) {
   const [isCopied, setIsCopied] = useState(false);
@@ -71,16 +69,21 @@ export default function Message({
         </Markdown>
       </div>
       {message.role === "assistant" && cleanContent.length > 0 && (
-        <Button
-          variant="ghost"
-          className="group-hover:visible invisible hover:cursor-pointer w-fit"
-          onClick={handleCopyMessage}
-        >
-          <div className="flex gap-2 align-middle items-center justify-start w-full">
-            {isCopied ? <CheckIcon /> : <CopyIcon />}
-            {isCopied ? "Copied" : "Copy Message"}
+        <div className="flex gap-2 align-middle items-center justify-start w-full group-hover:visible invisible">
+          <Button
+            variant="ghost"
+            className="hover:cursor-pointer w-fit"
+            onClick={handleCopyMessage}
+          >
+            <div className="flex gap-2 align-middle items-center justify-start w-full">
+              {isCopied ? <CheckIcon /> : <CopyIcon />}
+              {isCopied ? "Copied" : "Copy Message"}
+            </div>
+          </Button>
+          <div className="text-sm text-zinc-500">
+            Generated with: {message.model}
           </div>
-        </Button>
+        </div>
       )}
     </div>
   );

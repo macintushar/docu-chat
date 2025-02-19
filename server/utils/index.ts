@@ -8,7 +8,8 @@ import { MessageType } from "../../ui/src/types";
 import { Ollama } from "ollama";
 
 const ollamaHost = process.env.OLLAMA_HOST || "http://localhost:11434";
-const ollamaChatModel = process.env.OLLAMA_CHAT_MODEL || "llama3.2:latest";
+const defaultOllamaChatModel =
+  process.env.OLLAMA_CHAT_MODEL || "llama3.2:latest";
 const ollamaEmbeddingModel =
   process.env.OLLAMA_EMBEDDING_MODEL || "bge-m3:latest";
 
@@ -57,14 +58,19 @@ async function getEmbeddings(text: string): Promise<Float32Array> {
   return new Float32Array(data.embedding);
 }
 
-async function queryOllamaStream(messages: MessageType[]) {
+async function queryOllamaStream(messages: MessageType[], model: string) {
+  console.log("model", model);
+
   return await ollama.chat({
-    model: ollamaChatModel,
+    model: model || defaultOllamaChatModel,
     messages: messages,
     stream: true,
   });
 }
 
+async function getOllamaModels() {
+  return await ollama.list();
+}
 // Cosine similarity function
 function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   let dotProduct = 0;
@@ -102,6 +108,7 @@ export {
   chunkText,
   getEmbeddings,
   queryOllamaStream,
+  getOllamaModels,
   cosineSimilarity,
   euclideanSimilarity,
 };

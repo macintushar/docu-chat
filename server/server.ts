@@ -1,10 +1,9 @@
 import { Hono } from "hono";
-import ragApp from "./utils/rag";
-// import { initDB } from "./utils/db";
 import { initDB } from "./db";
 import { serveStatic } from "hono/bun";
 import { logger } from "hono/logger";
 import ragRouter from "./routers/rag";
+import chatRouter from "./routers/chat";
 
 // Initialize database
 console.log("Initializing...");
@@ -19,7 +18,8 @@ const apiApp = new Hono()
   .get("/", (c) => {
     return c.text("Hello API v1!");
   })
-  .route("/rag", ragRouter);
+  .route("/rag", ragRouter)
+  .route("/chat", chatRouter);
 
 // Mount API router at /api
 server.route("/api", apiApp);

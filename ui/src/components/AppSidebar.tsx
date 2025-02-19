@@ -14,7 +14,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -23,6 +22,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { ModeToggleButton } from "./ModeToggleButton";
 
+// @ts-ignore
 import Logo from "@/assets/logo.png";
 
 // Menu items.
@@ -36,11 +36,6 @@ const items = [
     title: "Knowledge",
     url: "/knowledge",
     icon: BrainCircuitIcon,
-  },
-  {
-    title: "Chat",
-    url: "/chat",
-    icon: MessageCircle,
   },
 ];
 

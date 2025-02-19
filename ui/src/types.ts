@@ -1,6 +1,7 @@
 export type MessageType = {
   role: "user" | "assistant" | "system";
   content: string;
+  model?: string;
 };
 
 export type KnowledgeDocument = {
@@ -16,4 +17,15 @@ export type KnowledgeDocumentDownload = {
 
 export type MessageResponse = {
   message: string;
+};
+
+export type Model = {
+  name: string;
+  model: string;
+};
+
+export type ChatConfig = {
+  configs: {
+    models: Model[];
+  };
 };

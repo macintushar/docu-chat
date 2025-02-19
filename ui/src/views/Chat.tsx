@@ -3,13 +3,14 @@ import Header from "@/components/Header";
 import Message from "@/components/Message";
 import ThoughtProcessDialog from "@/components/ThoughtProcessDialog";
 import { Button } from "@/components/ui/button";
-import { askOllamaStream } from "@/services";
-import { MessageType } from "@/types";
+import { askOllamaStream, getChatConfigs } from "@/services";
+import { KnowledgeDocument, MessageType, Model } from "@/types";
 import {
   addToSessionStorage,
   clearSessionStorage,
   getMessagesFromSessionStorage,
 } from "@/utils";
+import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -21,44 +22,90 @@ export default function Chat() {
   const [contextEnabled, setContextEnabled] = useState(false);
   const [thoughtProcess, setThoughtProcess] = useState<string>("");
   const [openThoughtProcess, setOpenThoughtProcess] = useState(false);
+  const [currentChatModel, setCurrentChatModel] = useState<Model | null>(null);
+  const [selectedDocuments, setSelectedDocuments] = useState<
+    KnowledgeDocument[]
+  >([]);
+
+  const { data: chatConfigs } = useQuery({
+    queryKey: ["chat", "config"],
+    queryFn: getChatConfigs,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
   async function askQuestionStream() {
     setIsLoading(true);
 
-    // Add user question and clear input
-    addToSessionStorage({ role: "user", content: question });
-    setMessages(getMessagesFromSessionStorage());
-    setQuestion("");
-
-    const messages = getMessagesFromSessionStorage();
-
-    // Add initial empty assistant message
-    addToSessionStorage({ role: "assistant", content: "" });
-    setMessages(getMessagesFromSessionStorage());
-
-    const data = await askOllamaStream(messages, contextEnabled);
-    let streamedAnswer = "";
-
     try {
-      for await (const response of data) {
-        streamedAnswer += response.message.content;
+      // Add user question and clear input
+      addToSessionStorage({ role: "user", content: question });
+      setMessages(getMessagesFromSessionStorage());
+      setQuestion("");
 
-        // Update the last message (assistant's response) with accumulated stream
+      const messages = getMessagesFromSessionStorage();
+
+      // Add initial empty assistant message
+      addToSessionStorage({
+        role: "assistant",
+        content: "",
+        model: currentChatModel?.model || "",
+      });
+      setMessages(getMessagesFromSessionStorage());
+
+      const data = await askOllamaStream(
+        messages,
+        contextEnabled,
+        currentChatModel?.model || "",
+      );
+      let streamedAnswer = "";
+
+      try {
+        for await (const response of data) {
+          streamedAnswer += response.message.content;
+
+          // Update the last message (assistant's response) with accumulated stream
+          const currentMessages = getMessagesFromSessionStorage();
+          const updatedMessages = [
+            ...currentMessages.slice(0, -1),
+            {
+              role: "assistant",
+              content: streamedAnswer,
+              model: currentChatModel?.model || "",
+            },
+          ];
+
+          window.sessionStorage.setItem(
+            "messages",
+            JSON.stringify(updatedMessages),
+          );
+          setMessages(updatedMessages);
+        }
+      } catch (error) {
+        console.error("Error in stream:", error);
+        // Update the last (assistant) message with error content
         const currentMessages = getMessagesFromSessionStorage();
         const updatedMessages = [
           ...currentMessages.slice(0, -1),
-          { role: "assistant", content: streamedAnswer },
+          {
+            role: "assistant",
+            content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while streaming the response"}`,
+          },
         ];
-
         window.sessionStorage.setItem(
           "messages",
           JSON.stringify(updatedMessages),
         );
         setMessages(updatedMessages);
-        setIsLoading(false);
       }
     } catch (error) {
-      console.error("Error in stream:", error);
+      console.error("Error initiating stream:", error);
+      // Add new error message to chat
+      addToSessionStorage({
+        role: "assistant",
+        content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while processing your request"}`,
+      });
+      setMessages(getMessagesFromSessionStorage());
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +114,16 @@ export default function Chat() {
   useEffect(() => {
     setMessages(getMessagesFromSessionStorage());
   }, []);
+
+  useEffect(() => {
+    if (chatConfigs && currentChatModel === null) {
+      setCurrentChatModel(chatConfigs.configs.models[0]);
+    }
+  }, [chatConfigs, currentChatModel]);
+
+  if (!currentChatModel) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex flex-col items-center max-h-full h-full w-full">
@@ -96,9 +153,12 @@ export default function Chat() {
               key={idx}
             >
               <Message
-                message={{ role: msg.role, content: msg.content }}
+                message={{
+                  role: msg.role,
+                  content: msg.content,
+                  model: msg.model,
+                }}
                 setThoughtProcess={setThoughtProcess}
-                openThoughtProcess={openThoughtProcess}
                 setOpenThoughtProcess={setOpenThoughtProcess}
                 key={idx}
               />
@@ -121,6 +181,11 @@ export default function Chat() {
           handleSubmit={askQuestionStream}
           contextEnabled={contextEnabled}
           setContextEnabled={setContextEnabled}
+          availableModels={chatConfigs?.configs.models || []}
+          currentChatModel={currentChatModel}
+          changeModel={setCurrentChatModel}
+          selectedDocuments={selectedDocuments}
+          setSelectedDocuments={setSelectedDocuments}
         />
       </div>
       <ThoughtProcessDialog
