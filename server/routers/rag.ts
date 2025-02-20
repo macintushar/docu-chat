@@ -20,6 +20,7 @@ import {
   insertDocument,
   insertFile,
 } from "../db";
+import { messagesSchema } from "../schemas";
 
 // Initialize Hono ragRouter
 const ragRouter = new Hono();
@@ -87,12 +88,7 @@ ragRouter.post(
   zValidator(
     "json",
     z.object({
-      messages: z.array(
-        z.object({
-          role: z.enum(["system", "user", "assistant"]),
-          content: z.string(),
-        })
-      ),
+      messages: messagesSchema,
       context_enabled: z.boolean(),
       model: z.string(),
     })

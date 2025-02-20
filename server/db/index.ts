@@ -29,6 +29,16 @@ function initDB() {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS chat_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      session_name TEXT NOT NULL,
+      messages TEXT NOT NULL
+    )
+  `);
+
   // Create indexes
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_documents_filename 
@@ -43,6 +53,11 @@ function initDB() {
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_documents_file_type 
     ON files(file_type)
+  `);
+
+  db.run(`
+    CREATE INDEX IF NOT EXISTS idx_chat_sessions_id 
+    ON chat_sessions(id)
   `);
 }
 
@@ -97,6 +112,26 @@ function deleteFile(fileId: string) {
   return deleteFile.run(fileId);
 }
 
+function getAllChatSessions() {
+  const stmt = db.query(`SELECT id, session_name FROM chat_sessions`);
+  return stmt.all();
+}
+
+function createChatSession(params: {
+  $session_name: string;
+  $messages: string;
+}) {
+  const stmt = db.prepare(
+    `INSERT INTO chat_sessions (session_name, messages) VALUES (?, ?)`
+  );
+  return stmt.run(params);
+}
+
+function getChatSession(id: number) {
+  const stmt = db.prepare(`SELECT * FROM chat_sessions WHERE id = ?`);
+  return stmt.get(id);
+}
+
 export {
   db,
   initDB,
@@ -107,4 +142,7 @@ export {
   getFileById,
   deleteDocument,
   deleteFile,
+  getAllChatSessions,
+  createChatSession,
+  getChatSession,
 };

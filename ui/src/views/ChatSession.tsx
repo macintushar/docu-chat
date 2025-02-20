@@ -3,19 +3,21 @@ import Header from "@/components/Header";
 import Message from "@/components/Message";
 import ThoughtProcessDialog from "@/components/ThoughtProcessDialog";
 import { Button } from "@/components/ui/button";
-import { askOllamaStream, getChatConfigs } from "@/services";
+import { askOllamaStream, getChatConfigs, getSession } from "@/services";
 import { KnowledgeDocument, MessageType, Model } from "@/types";
-import {
-  addToSessionStorage,
-  clearSessionStorage,
-  getMessagesFromSessionStorage,
-} from "@/utils";
+
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
-export default function Chat({ title }: { title?: string }) {
+export default function ChatSession({
+  title,
+  id,
+}: {
+  title?: string;
+  id: string;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -34,86 +36,93 @@ export default function Chat({ title }: { title?: string }) {
     refetchOnWindowFocus: false,
   });
 
-  async function askQuestionStream() {
-    setIsLoading(true);
+  const { data: session } = useQuery({
+    queryKey: ["session", id],
+    queryFn: () => getSession(id),
+  });
 
-    try {
-      // Add user question and clear input
-      addToSessionStorage({ role: "user", content: question });
-      setMessages(getMessagesFromSessionStorage());
-      setQuestion("");
+  console.log(session);
 
-      const messages = getMessagesFromSessionStorage();
+  //   async function askQuestionStream() {
+  //     setIsLoading(true);
 
-      // Add initial empty assistant message
-      addToSessionStorage({
-        role: "assistant",
-        content: "",
-        model: currentChatModel?.model || "",
-      });
-      setMessages(getMessagesFromSessionStorage());
+  //     try {
+  //       // Add user question and clear input
+  //       addToSessionStorage({ role: "user", content: question });
+  //       setMessages(getMessagesFromSessionStorage());
+  //       setQuestion("");
 
-      const data = await askOllamaStream(
-        messages,
-        contextEnabled,
-        currentChatModel?.model || "",
-      );
-      let streamedAnswer = "";
+  //       const messages = getMessagesFromSessionStorage();
 
-      try {
-        for await (const response of data) {
-          streamedAnswer += response.message.content;
+  //       // Add initial empty assistant message
+  //       addToSessionStorage({
+  //         role: "assistant",
+  //         content: "",
+  //         model: currentChatModel?.model || "",
+  //       });
+  //       setMessages(getMessagesFromSessionStorage());
 
-          // Update the last message (assistant's response) with accumulated stream
-          const currentMessages = getMessagesFromSessionStorage();
-          const updatedMessages = [
-            ...currentMessages.slice(0, -1),
-            {
-              role: "assistant",
-              content: streamedAnswer,
-              model: currentChatModel?.model || "",
-            },
-          ];
+  //       const data = await askOllamaStream(
+  //         messages,
+  //         contextEnabled,
+  //         currentChatModel?.model || "",
+  //       );
+  //       let streamedAnswer = "";
 
-          window.sessionStorage.setItem(
-            "messages",
-            JSON.stringify(updatedMessages),
-          );
-          setMessages(updatedMessages);
-        }
-      } catch (error) {
-        console.error("Error in stream:", error);
-        // Update the last (assistant) message with error content
-        const currentMessages = getMessagesFromSessionStorage();
-        const updatedMessages = [
-          ...currentMessages.slice(0, -1),
-          {
-            role: "assistant",
-            content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while streaming the response"}`,
-          },
-        ];
-        window.sessionStorage.setItem(
-          "messages",
-          JSON.stringify(updatedMessages),
-        );
-        setMessages(updatedMessages);
-      }
-    } catch (error) {
-      console.error("Error initiating stream:", error);
-      // Add new error message to chat
-      addToSessionStorage({
-        role: "assistant",
-        content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while processing your request"}`,
-      });
-      setMessages(getMessagesFromSessionStorage());
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  //       try {
+  //         for await (const response of data) {
+  //           streamedAnswer += response.message.content;
 
-  useEffect(() => {
-    setMessages(getMessagesFromSessionStorage());
-  }, []);
+  //           // Update the last message (assistant's response) with accumulated stream
+  //           const currentMessages = getMessagesFromSessionStorage();
+  //           const updatedMessages = [
+  //             ...currentMessages.slice(0, -1),
+  //             {
+  //               role: "assistant",
+  //               content: streamedAnswer,
+  //               model: currentChatModel?.model || "",
+  //             },
+  //           ];
+
+  //           window.sessionStorage.setItem(
+  //             "messages",
+  //             JSON.stringify(updatedMessages),
+  //           );
+  //           setMessages(updatedMessages);
+  //         }
+  //       } catch (error) {
+  //         console.error("Error in stream:", error);
+  //         // Update the last (assistant) message with error content
+  //         const currentMessages = getMessagesFromSessionStorage();
+  //         const updatedMessages = [
+  //           ...currentMessages.slice(0, -1),
+  //           {
+  //             role: "assistant",
+  //             content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while streaming the response"}`,
+  //           },
+  //         ];
+  //         window.sessionStorage.setItem(
+  //           "messages",
+  //           JSON.stringify(updatedMessages),
+  //         );
+  //         setMessages(updatedMessages);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error initiating stream:", error);
+  //       // Add new error message to chat
+  //       addToSessionStorage({
+  //         role: "assistant",
+  //         content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while processing your request"}`,
+  //       });
+  //       setMessages(getMessagesFromSessionStorage());
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+
+  //   useEffect(() => {
+  //     setMessages(getMessagesFromSessionStorage());
+  //   }, []);
 
   useEffect(() => {
     if (chatConfigs && currentChatModel === null) {
@@ -135,7 +144,7 @@ export default function Chat({ title }: { title?: string }) {
             variant="outline"
             onClick={() => {
               setMessages([]);
-              clearSessionStorage();
+              //   clearSessionStorage();
             }}
           >
             <RefreshCw />
@@ -178,7 +187,7 @@ export default function Chat({ title }: { title?: string }) {
         <ChatInput
           input={question}
           setInput={setQuestion}
-          handleSubmit={askQuestionStream}
+          handleSubmit={() => {}}
           contextEnabled={contextEnabled}
           setContextEnabled={setContextEnabled}
           availableModels={chatConfigs?.configs.models || []}

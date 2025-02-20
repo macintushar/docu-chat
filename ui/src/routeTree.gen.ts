@@ -14,6 +14,8 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as SessionsIndexImport } from './routes/sessions/index'
+import { Route as SessionsIdImport } from './routes/sessions/$id'
 
 // Create Virtual Routes
 
@@ -30,6 +32,18 @@ const KnowledgeLazyRoute = KnowledgeLazyImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SessionsIndexRoute = SessionsIndexImport.update({
+  id: '/sessions/',
+  path: '/sessions/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SessionsIdRoute = SessionsIdImport.update({
+  id: '/sessions/$id',
+  path: '/sessions/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -51,6 +65,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KnowledgeLazyImport
       parentRoute: typeof rootRoute
     }
+    '/sessions/$id': {
+      id: '/sessions/$id'
+      path: '/sessions/$id'
+      fullPath: '/sessions/$id'
+      preLoaderRoute: typeof SessionsIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/sessions/': {
+      id: '/sessions/'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof SessionsIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -59,36 +87,46 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/knowledge': typeof KnowledgeLazyRoute
+  '/sessions/$id': typeof SessionsIdRoute
+  '/sessions': typeof SessionsIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/knowledge': typeof KnowledgeLazyRoute
+  '/sessions/$id': typeof SessionsIdRoute
+  '/sessions': typeof SessionsIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/knowledge': typeof KnowledgeLazyRoute
+  '/sessions/$id': typeof SessionsIdRoute
+  '/sessions/': typeof SessionsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/knowledge'
+  fullPaths: '/' | '/knowledge' | '/sessions/$id' | '/sessions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/knowledge'
-  id: '__root__' | '/' | '/knowledge'
+  to: '/' | '/knowledge' | '/sessions/$id' | '/sessions'
+  id: '__root__' | '/' | '/knowledge' | '/sessions/$id' | '/sessions/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   KnowledgeLazyRoute: typeof KnowledgeLazyRoute
+  SessionsIdRoute: typeof SessionsIdRoute
+  SessionsIndexRoute: typeof SessionsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   KnowledgeLazyRoute: KnowledgeLazyRoute,
+  SessionsIdRoute: SessionsIdRoute,
+  SessionsIndexRoute: SessionsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -102,7 +140,9 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/knowledge"
+        "/knowledge",
+        "/sessions/$id",
+        "/sessions/"
       ]
     },
     "/": {
@@ -110,6 +150,12 @@ export const routeTree = rootRoute
     },
     "/knowledge": {
       "filePath": "knowledge.lazy.tsx"
+    },
+    "/sessions/$id": {
+      "filePath": "sessions/$id.tsx"
+    },
+    "/sessions/": {
+      "filePath": "sessions/index.tsx"
     }
   }
 }

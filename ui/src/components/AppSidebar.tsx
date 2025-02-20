@@ -1,6 +1,7 @@
 import {
   BrainCircuitIcon,
   Calendar,
+  HistoryIcon,
   Home,
   Inbox,
   MessageCircle,
@@ -25,12 +26,24 @@ import { ModeToggleButton } from "./ModeToggleButton";
 // @ts-ignore
 import Logo from "@/assets/logo.png";
 
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+  children?: MenuItem[];
+};
+
 // Menu items.
-const items = [
+const items: MenuItem[] = [
   {
     title: "Home",
     url: "/",
     icon: Home,
+  },
+  {
+    title: "Sessions",
+    url: "/sessions",
+    icon: HistoryIcon,
   },
   {
     title: "Knowledge",

@@ -4,6 +4,7 @@ import {
   KnowledgeDocumentDownload,
   MessageResponse,
   MessageType,
+  Session,
 } from "@/types";
 
 export const API_BASE_PATH = "/api/v1";
@@ -98,4 +99,14 @@ export async function deleteDocument(fileId: string) {
 export async function getChatConfigs() {
   const response = await fetch(`${API_BASE_PATH}/chat/configs`);
   return response.json() as Promise<ChatConfig>;
+}
+
+export async function getSessions() {
+  const response = await fetch(`${API_BASE_PATH}/chat/sessions`);
+  return response.json() as Promise<{ sessions: Session[] }>;
+}
+
+export async function getSession(id: string) {
+  const response = await fetch(`${API_BASE_PATH}/chat/sessions/${id}`);
+  return response.json() as Promise<Session>;
 }

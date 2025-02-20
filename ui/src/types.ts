@@ -29,3 +29,10 @@ export type ChatConfig = {
     models: Model[];
   };
 };
+
+export type Session = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+};
