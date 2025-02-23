@@ -1,7 +1,6 @@
 import {
   ChatConfig,
   KnowledgeDocument,
-  KnowledgeDocumentDownload,
   MessageResponse,
   MessageType,
 } from "@/types";
@@ -98,4 +97,12 @@ export async function deleteDocument(fileId: string) {
 export async function getChatConfigs() {
   const response = await fetch(`${API_BASE_PATH}/chat/configs`);
   return response.json() as Promise<ChatConfig>;
+}
+
+export async function generateTitle(messages: MessageType[], model: string) {
+  const response = await fetch(`${API_BASE_PATH}/chat/generate-title`, {
+    method: "POST",
+    body: JSON.stringify({ messages, model }),
+  });
+  return response.json() as Promise<string>;
 }

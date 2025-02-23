@@ -1,11 +1,7 @@
-import {
-  OllamaEmbedRequest,
-  OllamaEmbedResponse,
-  OllamaRequest,
-} from "../types";
 import { MessageType } from "../../ui/src/types";
 
 import { Ollama } from "ollama";
+import { useThinkContent } from "../../ui/src/utils";
 
 const ollamaHost = process.env.OLLAMA_HOST || "http://localhost:11434";
 const defaultOllamaChatModel =
@@ -102,6 +98,31 @@ function euclideanSimilarity(a: Float32Array, b: Float32Array): number {
   // Using exponential decay formula: similarity = 1 / (1 + distance)
   // This ensures the similarity score is between 0 and 1
   return 1 / (1 + distance);
+}
+
+export async function generateTitle(messages: MessageType[], model: string) {
+  const titlePrompt = `
+  You are a helpful assistant that generates a title for a chat.
+  The title should be a short and concise description of the chat.
+  The title should be no more than 5 words.
+  The title should be a single sentence.
+  The title should be a single sentence.
+  `;
+  const response = await ollama.chat({
+    model: model || defaultOllamaChatModel,
+    messages: [
+      {
+        role: "system",
+        content: titlePrompt,
+      },
+      ...messages,
+    ],
+  });
+  if (response.message.content.length <= 5) {
+    const { cleanContent } = useThinkContent(response.message);
+    return cleanContent;
+  }
+  return "Untitled Chat";
 }
 
 export {

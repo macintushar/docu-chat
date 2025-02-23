@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getOllamaModels } from "../utils";
+import { generateTitle, getOllamaModels } from "../utils";
 
 const chatRouter = new Hono();
 
@@ -10,6 +10,12 @@ chatRouter.get("/configs", async (c) => {
       models: ollamaModels.models,
     },
   });
+});
+
+chatRouter.post("/generate-title", async (c) => {
+  const { messages, model } = await c.req.json();
+  const title = await generateTitle(messages, model);
+  return c.json({ title });
 });
 
 export default chatRouter;

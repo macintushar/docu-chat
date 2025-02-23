@@ -1,12 +1,4 @@
-import {
-  BrainCircuitIcon,
-  Calendar,
-  Home,
-  Inbox,
-  MessageCircle,
-  Search,
-  Settings,
-} from "lucide-react";
+import { BrainCircuitIcon, MessageCircle } from "lucide-react";
 
 import {
   Sidebar,
@@ -30,7 +22,7 @@ const items = [
   {
     title: "Home",
     url: "/",
-    icon: Home,
+    icon: MessageCircle,
   },
   {
     title: "Knowledge",
@@ -42,8 +34,8 @@ const items = [
 export function AppSidebar() {
   return (
     <Sidebar className="w-[64px]" variant="inset">
-      <SidebarHeader>
-        <img src={Logo} alt="Docu Chat" className="fill-white" />
+      <SidebarHeader className="justify-center items-center">
+        <img src={Logo} alt="Docu Chat" className="h-8 w-8" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

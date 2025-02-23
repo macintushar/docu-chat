@@ -5,7 +5,7 @@ import { zValidator } from "@hono/zod-validator";
 
 import {
   chunkText,
-  cosineSimilarity,
+  euclideanSimilarity,
   getEmbeddings,
   queryOllamaStream,
 } from "../utils";
@@ -118,7 +118,7 @@ ragRouter.post(
 
         const similarities = documents.map((doc) => ({
           document: doc,
-          similarity: cosineSimilarity(
+          similarity: euclideanSimilarity(
             queryEmbedding,
             new Float32Array(doc.embedding.buffer)
           ),

@@ -3,19 +3,15 @@ import Header from "@/components/Header";
 import Message from "@/components/Message";
 import ThoughtProcessDialog from "@/components/ThoughtProcessDialog";
 import { Button } from "@/components/ui/button";
-import { askOllamaStream, getChatConfigs } from "@/services";
+import { askOllamaStream, generateTitle, getChatConfigs } from "@/services";
 import { KnowledgeDocument, MessageType, Model } from "@/types";
-import {
-  addToSessionStorage,
-  clearSessionStorage,
-  getMessagesFromSessionStorage,
-} from "@/utils";
+import { addToSessionStorage } from "@/utils";
+import { getSession, updateSession } from "@/utils/session";
 import { useQuery } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
-export default function Chat() {
+export default function Chat({ sessionId }: { sessionId: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -39,19 +35,25 @@ export default function Chat() {
 
     try {
       // Add user question and clear input
-      addToSessionStorage({ role: "user", content: question });
-      setMessages(getMessagesFromSessionStorage());
+      updateSession(sessionId, [
+        ...(getSession(sessionId)?.messages || []),
+        { role: "user", content: question },
+      ]);
+      setMessages(getSession(sessionId)?.messages || []);
       setQuestion("");
 
-      const messages = getMessagesFromSessionStorage();
+      const messages = getSession(sessionId)?.messages || [];
 
       // Add initial empty assistant message
-      addToSessionStorage({
-        role: "assistant",
-        content: "",
-        model: currentChatModel?.model || "",
-      });
-      setMessages(getMessagesFromSessionStorage());
+      updateSession(sessionId, [
+        ...(getSession(sessionId)?.messages || []),
+        {
+          role: "assistant",
+          content: "",
+          model: currentChatModel?.model || "",
+        },
+      ]);
+      setMessages(getSession(sessionId)?.messages || []);
 
       const data = await askOllamaStream(
         messages,
@@ -65,8 +67,8 @@ export default function Chat() {
           streamedAnswer += response.message.content;
 
           // Update the last message (assistant's response) with accumulated stream
-          const currentMessages = getMessagesFromSessionStorage();
-          const updatedMessages = [
+          const currentMessages = getSession(sessionId)?.messages || [];
+          const updatedMessages: MessageType[] = [
             ...currentMessages.slice(0, -1),
             {
               role: "assistant",
@@ -75,16 +77,13 @@ export default function Chat() {
             },
           ];
 
-          window.sessionStorage.setItem(
-            "messages",
-            JSON.stringify(updatedMessages),
-          );
+          updateSession(sessionId, updatedMessages);
           setMessages(updatedMessages);
         }
       } catch (error) {
         console.error("Error in stream:", error);
         // Update the last (assistant) message with error content
-        const currentMessages = getMessagesFromSessionStorage();
+        const currentMessages = getSession(sessionId)?.messages || [];
         const updatedMessages = [
           ...currentMessages.slice(0, -1),
           {
@@ -96,7 +95,7 @@ export default function Chat() {
           "messages",
           JSON.stringify(updatedMessages),
         );
-        setMessages(updatedMessages);
+        setMessages(updatedMessages as MessageType[]);
       }
     } catch (error) {
       console.error("Error initiating stream:", error);
@@ -105,14 +104,14 @@ export default function Chat() {
         role: "assistant",
         content: `Error: ${error instanceof Error ? error.message : "An unknown error occurred while processing your request"}`,
       });
-      setMessages(getMessagesFromSessionStorage());
+      setMessages(getSession(sessionId)?.messages || []);
     } finally {
       setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    setMessages(getMessagesFromSessionStorage());
+    setMessages(getSession(sessionId)?.messages || []);
   }, []);
 
   useEffect(() => {
@@ -121,28 +120,20 @@ export default function Chat() {
     }
   }, [chatConfigs, currentChatModel]);
 
+  // useEffect(() => {
+  //   if (messages.length === 100) {
+  //     generateTitle(messages, currentChatModel?.model || "").then((title) => {
+  //       updateSessionTitle(sessionId, title);
+  //     });
+  //   }
+  // }, [messages]);
+
   if (!currentChatModel) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="flex flex-col items-center max-h-full h-full w-full">
-      <Header
-        title="Chat"
-        subtitle="Ask the LLM anything about the documents in the knowledge base."
-        cta={
-          <Button
-            variant="outline"
-            onClick={() => {
-              setMessages([]);
-              clearSessionStorage();
-            }}
-          >
-            <RefreshCw />
-            Clear Chat
-          </Button>
-        }
-      />
       {messages.length > 0 ? (
         <div className="h-full overflow-y-scroll scrollbar w-4/5 max-w-4/5 mt-4 px-4 mb-2">
           {messages.map((msg, idx) => (

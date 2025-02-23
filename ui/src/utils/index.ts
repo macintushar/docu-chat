@@ -1,4 +1,4 @@
-import { MessageType } from "@/types";
+import { ChatSession, MessageType } from "@/types";
 import { useMemo } from "react";
 
 export const getThinkContent = (content: string) => {
