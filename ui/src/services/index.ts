@@ -104,5 +104,5 @@ export async function generateTitle(messages: MessageType[], model: string) {
     method: "POST",
     body: JSON.stringify({ messages, model }),
   });
-  return response.json() as Promise<string>;
+  return response.json() as Promise<{ title: string }>;
 }

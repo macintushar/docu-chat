@@ -6,12 +6,18 @@ import { Button } from "@/components/ui/button";
 import { askOllamaStream, generateTitle, getChatConfigs } from "@/services";
 import { KnowledgeDocument, MessageType, Model } from "@/types";
 import { addToSessionStorage } from "@/utils";
-import { getSession, updateSession } from "@/utils/session";
+import { getSession, updateSession, updateSessionTitle } from "@/utils/session";
 import { useQuery } from "@tanstack/react-query";
 
 import { useEffect, useState } from "react";
 
-export default function Chat({ sessionId }: { sessionId: string }) {
+export default function Chat({
+  sessionId,
+  refetch,
+}: {
+  sessionId: string;
+  refetch: () => void;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -112,7 +118,7 @@ export default function Chat({ sessionId }: { sessionId: string }) {
 
   useEffect(() => {
     setMessages(getSession(sessionId)?.messages || []);
-  }, []);
+  }, [sessionId]);
 
   useEffect(() => {
     if (chatConfigs && currentChatModel === null) {
@@ -120,13 +126,19 @@ export default function Chat({ sessionId }: { sessionId: string }) {
     }
   }, [chatConfigs, currentChatModel]);
 
-  // useEffect(() => {
-  //   if (messages.length === 100) {
-  //     generateTitle(messages, currentChatModel?.model || "").then((title) => {
-  //       updateSessionTitle(sessionId, title);
-  //     });
-  //   }
-  // }, [messages]);
+  useEffect(() => {
+    if (messages.length === 2 && !isLoading && currentChatModel) {
+      generateTitle(messages, currentChatModel.model).then((title) => {
+        console.log(title.title);
+
+        updateSessionTitle(
+          sessionId,
+          title.title.length > 0 ? title.title : "New Chat",
+        );
+        refetch();
+      });
+    }
+  }, [messages, isLoading, currentChatModel]);
 
   if (!currentChatModel) {
     return <div>Loading...</div>;

@@ -13,8 +13,8 @@ chatRouter.get("/configs", async (c) => {
 });
 
 chatRouter.post("/generate-title", async (c) => {
-  const { messages, model } = await c.req.json();
-  const title = await generateTitle(messages, model);
+  const { messages } = await c.req.json();
+  const title = await generateTitle(messages);
   return c.json({ title });
 });
 

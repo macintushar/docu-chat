@@ -29,6 +29,12 @@ type OllamaRequest = {
   stream: boolean;
 };
 
+type MessageType = {
+  role: "user" | "assistant" | "system";
+  content: string;
+  model?: string;
+};
+
 export type {
   QueryRequest,
   RAGDocument,
@@ -36,4 +42,5 @@ export type {
   OllamaEmbedResponse,
   OllamaMessage,
   OllamaRequest,
+  MessageType,
 };

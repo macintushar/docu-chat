@@ -51,7 +51,7 @@ export default function Chats() {
       />
       <div className="w-full h-full md:w-4/5">
         {id ? (
-          <Chat sessionId={id} />
+          <Chat sessionId={id} refetch={refetch} />
         ) : (
           <div className="h-full flex items-center justify-center text-zinc-200 text-center">
             <p>Select a chat from the left or create a new one.</p>

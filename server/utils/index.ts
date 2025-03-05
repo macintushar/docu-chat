@@ -1,7 +1,8 @@
-import { MessageType } from "../../ui/src/types";
+import { MessageType } from "../types";
 
 import { Ollama } from "ollama";
-import { useThinkContent } from "../../ui/src/utils";
+
+import { useMemo } from "hono/jsx";
 
 const ollamaHost = process.env.OLLAMA_HOST || "http://localhost:11434";
 const defaultOllamaChatModel =
@@ -12,6 +13,24 @@ const ollamaEmbeddingModel =
 const ollama = new Ollama({
   host: ollamaHost,
 });
+
+export const getThinkContent = (content: string) => {
+  const match = content.match(/<think>([\s\S]*?)(?:<\/think>|$)/);
+  return match ? match[1].trim() : null;
+};
+
+export function useThinkContent(message: MessageType) {
+  const { thinkContent, cleanContent } = useMemo(() => {
+    return {
+      thinkContent: getThinkContent(message.content),
+      cleanContent: message.content
+        .replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "")
+        .trim(),
+    };
+  }, [message.content]);
+
+  return { thinkContent, cleanContent };
+}
 
 // Text chunking function
 function chunkText(text: string, chunkSize: number = 1000): string[] {
@@ -100,29 +119,38 @@ function euclideanSimilarity(a: Float32Array, b: Float32Array): number {
   return 1 / (1 + distance);
 }
 
-export async function generateTitle(messages: MessageType[], model: string) {
+export async function generateTitle(messages: MessageType[]) {
   const titlePrompt = `
   You are a helpful assistant that generates a title for a chat.
   The title should be a short and concise description of the chat.
   The title should be no more than 5 words.
   The title should be a single sentence.
-  The title should be a single sentence.
+  The messages are passed below. Generate a title for the chat based on the messages.
+  Do not respond with anything other than the title.
+  Do not respond to the messages passed below.
+
+  Messages:
+  ${messages.map((message) => `${message.role}: ${message.content}`).join("\n")}
   `;
-  const response = await ollama.chat({
-    model: model || defaultOllamaChatModel,
-    messages: [
-      {
-        role: "system",
-        content: titlePrompt,
-      },
-      ...messages,
-    ],
+
+  console.log(titlePrompt);
+
+  const response = await ollama.generate({
+    model: defaultOllamaChatModel,
+    prompt: titlePrompt,
+    stream: false,
   });
-  if (response.message.content.length <= 5) {
-    const { cleanContent } = useThinkContent(response.message);
+
+  console.log(response);
+
+  if (response.response !== "") {
+    const { cleanContent } = useThinkContent({
+      role: "assistant",
+      content: response.response,
+    });
     return cleanContent;
   }
-  return "Untitled Chat";
+  return "New Chat";
 }
 
 export {
